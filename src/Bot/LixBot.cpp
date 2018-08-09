@@ -216,7 +216,7 @@ void LixBot::handlePRIVMSG(const PRIVMSG& priv)
 			if (lixxie)
 			{
 				removeLixxie(*lixxie);
-				m_world.playSound("oblivion");
+				// m_world.playSound("oblivion");
 				lixxie = nullptr;
 			}
 			break;

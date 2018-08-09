@@ -2,6 +2,7 @@
 #include "Application.hpp"
 
 #include <Windows.h>
+
 #include <iostream>
 
 int main()
