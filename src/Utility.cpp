@@ -143,6 +143,25 @@ std::string exec(const std::string& cmd)
 	return result; // utf8
 }
 
+std::string exec(const std::wstring& cmd)
+{
+	std::shared_ptr<FILE> pipe(_wpopen(cmd.data(), L"r"), _pclose);
+
+	if (!pipe)
+		throw std::runtime_error("_popen() failed!");
+
+	std::array<char, 128> buffer;
+	std::string result;
+
+	while (!feof(pipe.get()))
+	{
+		if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+			result += buffer.data();
+	}
+
+	return result;
+}
+
 void centerOrigin(sf::Text& text)
 {
 	const sf::FloatRect bounds = text.getLocalBounds();

@@ -9,7 +9,7 @@
 #include <random>
 #include <array>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 Jukebox::Jukebox(Client& client)
 	: Bot(client)
@@ -108,13 +108,14 @@ void Jukebox::download()
 		else
 		{
 			const auto [username, link] = m_requests.front();
+			std::wstring utf16Link = ansiToUtf16(link);
 			m_requests.pop();
 
 			lock.unlock();
 
 			// TODO: limit song length (--get-duration)
-			std::string title = ".\\Jukebox\\youtube-dl.exe --get-title --no-playlist --default-search \"ytsearch\" \"" + link + "\"";
-			title = exec(title);
+			std::wstring cmd = L".\\Jukebox\\youtube-dl.exe --get-title --no-playlist --default-search \"ytsearch\" \"" + utf16Link + L"\"";
+			std::string title  = exec(cmd);
 
 			if (title.empty() || title.find("ERROR:") != std::string::npos)
 			{
@@ -130,8 +131,8 @@ void Jukebox::download()
 				sendPRIVMSG('@' + username + " Added song: " + title);
 			}
 
-			std::string request = ".\\Jukebox\\youtube-dl.exe --no-playlist --default-search \"ytsearch\" -o \".\\Jukebox\\Download\\" + username + " - %(id)s.%(ext)s\" \"" + link + "\"";
-			request = exec(request);
+			cmd = L".\\Jukebox\\youtube-dl.exe --no-playlist --default-search \"ytsearch\" -o \".\\Jukebox\\Download\\" + ansiToUtf16(username) + L" - %(id)s.%(ext)s\" \"" + utf16Link + L"\"";
+			std::string request = exec(cmd);
 
 			std::string filename = getSubstring(request, "[download] Destination: ", "\n");
 
@@ -169,7 +170,7 @@ void Jukebox::play()
 
 		if (m_defaultSongs.empty() && m_requestedSongs.empty())
 		{
-			loadSongs("Jukebox/Music");
+			loadSongs(L"Jukebox/Music");
 			shuffleSongs();
 
 			if (m_defaultSongs.empty())
@@ -178,12 +179,14 @@ void Jukebox::play()
 
 		else
 		{
-			std::string filename;
+			std::wstring filename;
 			m_previousSongName = std::move(m_currentSongName);
 
 			if (!m_requestedSongs.empty())
 			{
-				std::tie(filename, m_currentSongName) = m_requestedSongs.front();
+				// std::tie(filename, m_currentSongName) = m_requestedSongs.front();
+				filename = ansiToUtf16(m_requestedSongs.front().first);
+				m_currentSongName = m_requestedSongs.front().second;
 				m_requestedSongs.pop();
 				m_state = State::PlayingRequestedSong;
 			}
@@ -201,7 +204,7 @@ void Jukebox::play()
 			// https://mpv.io/manual/master/#keyboard-control
 			// https://github.com/mpv-player/mpv/blob/master/etc/input.conf
 
-			const std::string request = ".\\Jukebox\\mpv.com --no-video --volume " + std::to_string(m_volume) + " \"" + filename + "\"";
+			const std::wstring request = L".\\Jukebox\\mpv.com --no-video --volume " + std::to_wstring(m_volume) + L" \"" + filename + L"\"";
 			playSong(request);
 
 			// TODO: UTF16?
@@ -217,7 +220,7 @@ void Jukebox::play()
 	}
 }
 
-void Jukebox::loadSongs(const std::string& directory)
+void Jukebox::loadSongs(const std::wstring& directory)
 {
 	for (const auto& entry : fs::recursive_directory_iterator(directory))
 	{
@@ -226,7 +229,7 @@ void Jukebox::loadSongs(const std::string& directory)
 			const auto& ext = entry.path().extension();
 
 			if (ext == ".mp3" || ext == ".mp4" || ext == ".ogg" || ext == ".flac" || ext == ".webm")
-				m_defaultSongs.emplace_back(entry.path().string());
+				m_defaultSongs.emplace_back(entry.path().wstring());
 		}
 
 		else if (!fs::is_directory(entry))
@@ -244,9 +247,9 @@ void Jukebox::shuffleSongs()
 	std::shuffle(m_defaultSongs.begin(), m_defaultSongs.end(), mt);
 }
 
-void Jukebox::playSong(const std::string& cmd)
+void Jukebox::playSong(const std::wstring& cmd)
 {
-	std::shared_ptr<FILE> pipe(_popen(cmd.data(), "r"), _pclose);
+	std::shared_ptr<FILE> pipe(_wpopen(cmd.data(), L"r"), _pclose);
 
 	if (!pipe)
 		throw std::runtime_error("_popen() failed!");

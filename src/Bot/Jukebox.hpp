@@ -30,17 +30,17 @@ private:
 	void download();
 	void play();
 
-	void loadSongs(const std::string& directory);
+	void loadSongs(const std::wstring& directory);
 	void shuffleSongs();
 
-	void playSong(const std::string& cmd);
+	void playSong(const std::wstring& cmd);
 	void skipSong();
 
 private:
 	bool m_running = true;
 	int m_volume = 75;
 	State m_state = State::DoingNothing;
-	std::deque<std::string> m_defaultSongs;
+	std::deque<std::wstring> m_defaultSongs;
 	std::queue<std::pair<std::string, std::string>> m_requestedSongs;
 	std::queue<std::pair<std::string, std::string>> m_requests;
 	std::string m_currentSongName;

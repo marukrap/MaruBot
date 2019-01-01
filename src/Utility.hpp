@@ -27,6 +27,7 @@ std::string utf8ToAnsi(const std::string& utf8);
 
 // execute a file
 std::string exec(const std::string& cmd);
+std::string exec(const std::wstring& cmd);
 
 // center objects
 void centerOrigin(sf::Text& text);

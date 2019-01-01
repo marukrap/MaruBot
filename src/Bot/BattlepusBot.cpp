@@ -8,7 +8,7 @@
 #include <cctype>
 #include <cassert>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 BattlepusBot::BattlepusBot(Client& client, const sf::RenderTarget& target)
 	: Bot(client)

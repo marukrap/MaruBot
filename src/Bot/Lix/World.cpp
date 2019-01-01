@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 World::World(const sf::Vector2i& mapSize)
 	: m_map(mapSize.x, mapSize.y)
